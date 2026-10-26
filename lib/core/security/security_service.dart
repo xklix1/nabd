@@ -61,7 +61,7 @@ class SecurityService {
       canUseBiometrics: canBiometric,
       details: isRooted
           ? 'Rooted / Insecure environment detected.'
-          : 'Device integrity verified (AES-256 Storage Active).',
+          : 'Device verified and securely protected.',
     );
   }
 

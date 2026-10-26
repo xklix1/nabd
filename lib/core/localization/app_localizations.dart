@@ -19,7 +19,7 @@ class AppStrings {
       'onboarding_title_1': 'موسوعة طبية بدون إنترنت',
       'onboarding_desc_1': 'تصفح معلومات موثقة لآلاف الأدوية والتحاليل والأمراض وفق منظمة الصحة العالمية وهيئة الدواء المصرية دون الحاجة لاتصال بالإنترنت.',
       'onboarding_title_2': 'خصوصية وأمان تام لبياناتك',
-      'onboarding_desc_2': 'سجلاتك الحيوية وملفك الصحي مشفرة محلياً بالكامل بتقنية AES-256 داخل هاتفك، ومحمية ببصمة وجهك وإصبعك.',
+      'onboarding_desc_2': 'سجلاتك الحيوية وملفك الصحي محفوظة بأعلى درجات الخصوصية والأمان داخل هاتفك، ومحمية ببصمة وجهك أو إصبعك.',
       'onboarding_title_3': 'تنبيهات ومتابعة دقيقة',
       'onboarding_desc_3': 'جدولة ذكية لجرعات الأدوية ومتابعة مستمرة لقياسات الضغط والسكر ومعدل النبض بأمان تام.',
       'next': 'التالي',
@@ -60,7 +60,7 @@ class AppStrings {
 
       // Security Warning
       'security_alert_title': 'تنبيه أمني هام',
-      'security_alert_body': 'تم اكتشاف بيئة تشغيل غير آمنة أو كسر حماية (Root/Jailbreak) في هذا الجهاز. لحماية بياناتك الصحية الشخصية المشفرة، تم تقييد الوصول إلى السجلات الحيوية.',
+      'security_alert_body': 'تم اكتشاف تعديل في نظام تشغيل الجهاز. لحماية خصوصية بياناتك وسجلاتك الصحية، تم تقييد الوصول إليها مؤقتاً.',
       'understand': 'فهمت ذلك',
     },
     'en': {
@@ -77,8 +77,8 @@ class AppStrings {
       // Onboarding
       'onboarding_title_1': '100% Offline Medical Reference',
       'onboarding_desc_1': 'Access verified medical information for medications, lab tests, and diseases backed by WHO and EDA without needing internet.',
-      'onboarding_title_2': 'Complete Privacy & Encryption',
-      'onboarding_desc_2': 'Your vital health logs are stored strictly on-device with AES-256 encryption, protected by your biometric Face ID / Fingerprint.',
+      'onboarding_title_2': 'Complete Privacy & Security',
+      'onboarding_desc_2': 'Your vital health logs are stored strictly and privately on your device, protected by your biometric Face ID or Fingerprint.',
       'onboarding_title_3': 'Offline Medication Reminders',
       'onboarding_desc_3': 'Schedule smart dosage alarms and track vital signs such as blood pressure and heart rate safely.',
       'next': 'Next',
@@ -119,7 +119,7 @@ class AppStrings {
 
       // Security Warning
       'security_alert_title': 'Security Alert',
-      'security_alert_body': 'An insecure or rooted/jailbroken environment was detected on this device. To protect your personal health information, access to encrypted records has been restricted.',
+      'security_alert_body': 'An altered system environment was detected on this device. To protect your personal health privacy, access to records has been temporarily restricted.',
       'understand': 'Understood',
     },
   };

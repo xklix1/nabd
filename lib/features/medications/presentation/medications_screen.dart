@@ -33,7 +33,7 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isArabic ? 'دليل الأدوية الشامل (100 دواء)' : 'Comprehensive Medications (100 Meds)',
+          isArabic ? 'دليل الأدوية الشامل (150+ دواء)' : 'Comprehensive Medications (150+ Meds)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),

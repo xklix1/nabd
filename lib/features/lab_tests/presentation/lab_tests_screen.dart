@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/medical_references.dart';
-import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/medical_disclaimer_card.dart';
@@ -28,7 +27,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppStrings.get('service_labs', lang),
+          isArabic ? 'دليل التحاليل الطبية الشامل (60 فحصاً)' : 'Comprehensive Lab Tests (60 Tests)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),

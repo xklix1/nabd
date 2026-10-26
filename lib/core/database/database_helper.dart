@@ -3,10 +3,11 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../security/secure_key_storage.dart';
 import '../constants/medical_references.dart';
 import 'seed_medications.dart';
+import 'seed_lab_tests.dart';
 
 class DatabaseHelper {
-  static const String _databaseName = 'nabd_secure_v3.db';
-  static const int _databaseVersion = 3;
+  static const String _databaseName = 'nabd_secure_v4.db';
+  static const int _databaseVersion = 4;
 
   final SecureKeyStorage _keyStorage;
   Database? _db;
@@ -147,50 +148,15 @@ class DatabaseHelper {
   Future<void> _seedInitialMedicalData(Database db) async {
     final batch = db.batch();
 
-    // 1. Insert 40 Verified Medications with Active Ingredients & Official URLs
+    // 1. Insert Verified Egyptian Medications (150+)
     for (final med in getInitialMedications()) {
       batch.insert('medications', med);
     }
 
-    // 2. Verified Sample Lab Tests
-    batch.insert('lab_tests', {
-      'name_ar': 'سكر الدم الصائم',
-      'name_en': 'Fasting Blood Glucose',
-      'code': 'FBG',
-      'explanation_ar': 'يقيس تركيز الجلوكوز في الدم بعد صيام لا يقل عن 8 ساعات، لتقييم كفاءة معالجة الجسم للسكريات.',
-      'explanation_en': 'Measures blood glucose concentration after a minimum 8-hour fast to assess carbohydrate metabolism.',
-      'normal_range_ar': '70 إلى 99 مجم/ديسيلتر',
-      'normal_range_en': '70 to 99 mg/dL',
-      'unit': 'mg/dL',
-      'official_source': '${MedicalReferences.sourceWHO} / ${MedicalReferences.sourceMOHP}',
-      'official_url': MedicalReferences.urlWHO,
-    });
-
-    batch.insert('lab_tests', {
-      'name_ar': 'الهيموجلوبين السكري (التراكمي)',
-      'name_en': 'Hemoglobin A1c',
-      'code': 'HbA1c',
-      'explanation_ar': 'يعكس متوسط مستويات السكر في الدم على مدار الشهرين إلى الثلاثة أشهر السابقة.',
-      'explanation_en': 'Reflects the average blood sugar level over the preceding 2 to 3 months.',
-      'normal_range_ar': 'أقل من 5.7% (للبالغين غير المصابين بالسكري)',
-      'normal_range_en': 'Less than 5.7% (for non-diabetic adults)',
-      'unit': '%',
-      'official_source': MedicalReferences.sourceWHO,
-      'official_url': MedicalReferences.urlWHO,
-    });
-
-    batch.insert('lab_tests', {
-      'name_ar': 'تعداد الدم الكامل - الهيموجلوبين',
-      'name_en': 'Complete Blood Count - Hemoglobin',
-      'code': 'CBC-HGB',
-      'explanation_ar': 'يقيس البروتين الحامل للأكسجين في كريات الدم الحمراء للكشف عن فقر الدم (الأنيميا).',
-      'explanation_en': 'Measures the oxygen-carrying protein in red blood cells to detect anemia or related disorders.',
-      'normal_range_ar': 'الرجال: 13.5 - 17.5 جم/ديسيلتر | النساء: 12.0 - 15.5 جم/ديسيلتر',
-      'normal_range_en': 'Men: 13.5 - 17.5 g/dL | Women: 12.0 - 15.5 g/dL',
-      'unit': 'g/dL',
-      'official_source': '${MedicalReferences.sourceWHO} / ${MedicalReferences.sourceMOHP}',
-      'official_url': MedicalReferences.urlWHO,
-    });
+    // 2. Insert Comprehensive Medical Lab Tests (60+)
+    for (final lab in getInitialLabTests()) {
+      batch.insert('lab_tests', lab);
+    }
 
     // 3. Verified Sample Diseases
     batch.insert('diseases', {

@@ -72,7 +72,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                isArabic ? 'تشفير AES-256 نشط محلياً' : 'Local AES-256 Active',
+                                isArabic ? 'بياناتك مؤمنة ومحمية بالكامل' : 'Your Data is Privately Protected',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -198,8 +198,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 6),
                     Text(
                       isArabic
-                          ? 'جلب التحديثات الطبية الطفيفة (Delta Updates) مع التحقق من سلامة البصمة المشفرة (SHA-256).'
-                          : 'Fetch delta patches with SHA-256 cryptographic integrity verification.',
+                          ? 'التحقق من توفر أحدث النشرات الدوائية والتحاليل الطبية المعتمدة وتحديثها بأمان.'
+                          : 'Check for the latest verified medical guidelines and drug leaflets.',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -262,7 +262,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                     subtitle: Text(
-                      status.details,
+                      isSafe
+                          ? (isArabic ? 'سجلاتك وبياناتك الصحية مؤمنة ومحمية بالكامل.' : 'Your health records are safely protected.')
+                          : (isArabic ? 'تنبيه: تم رصد تعديل في بيئة التشغيل.' : 'Notice: System alteration detected.'),
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),
@@ -339,8 +341,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       setState(() {
         _isCheckingUpdate = false;
         _updateStatusMessage = isArabic
-            ? 'قاعدة البيانات الطبية المحلية محدثة بأحدث مراجع منظمة الصحة وهيئة الدواء (SHA-256 Verified).'
-            : 'Local medical database is fully up to date with WHO and EDA guidelines (SHA-256 Verified).';
+            ? 'الموسوعة الطبية محدثة بالكامل بأحدث مراجع منظمة الصحة وهيئة الدواء المصرية.'
+            : 'Local medical library is fully up to date with WHO and EDA guidelines.';
       });
     }
   }

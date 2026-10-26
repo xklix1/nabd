@@ -167,7 +167,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    isArabic ? 'مشفر محلياً' : 'AES-256',
+                                    isArabic ? 'آمن ومحمي' : 'Secure',
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: Colors.green,
@@ -320,11 +320,11 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                       children: [
                         _buildHeroBadge(
                           icon: Icons.medication_rounded,
-                          label: isArabic ? '100 دواء معتمد' : '100 Medications',
+                          label: isArabic ? '150+ دواء مصري' : '150+ Egyptian Meds',
                         ),
                         _buildHeroBadge(
                           icon: Icons.biotech_rounded,
-                          label: isArabic ? '25 فحص مخبري' : '25 Lab Tests',
+                          label: isArabic ? '60 فحص مخبري' : '60 Lab Tests',
                         ),
                         _buildHeroBadge(
                           icon: Icons.offline_bolt_rounded,
@@ -683,7 +683,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                 children: [
                   _buildServiceCard(
                     title: isArabic ? 'دليل الأدوية' : 'Medications',
-                    badge: isArabic ? '100 دواء' : '100 Meds',
+                    badge: isArabic ? '150+ دواء' : '150+ Meds',
                     subtitle: isArabic ? 'الجرعات، التفاعلات، والمحاذير' : 'Dosages, interactions & warnings',
                     icon: Icons.medication_rounded,
                     color: AppColors.primaryBlue,
@@ -692,7 +692,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                   ),
                   _buildServiceCard(
                     title: isArabic ? 'دليل التحاليل' : 'Lab Tests',
-                    badge: isArabic ? '25 فحص' : '25 Tests',
+                    badge: isArabic ? '60 فحصاً' : '60 Tests',
                     subtitle: isArabic ? 'المعدلات الطبيعية والتفسير' : 'Normal ranges & explanations',
                     icon: Icons.biotech_rounded,
                     color: AppColors.secondaryTeal,
