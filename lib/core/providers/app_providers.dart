@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database_helper.dart';
 import '../notifications/notification_service.dart';
+import '../security/secure_key_storage.dart';
 import '../security/security_service.dart';
+import '../../features/auth/presentation/auth_screen.dart';
+import '../../features/dashboard/presentation/main_screen.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
 
 // Language State Provider (Defaults to Arabic 'ar')
 final languageProvider = StateNotifierProvider<LanguageNotifier, String>((ref) {
@@ -70,4 +74,30 @@ final searchResultsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
 final recentVitalLogsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final db = ref.watch(databaseHelperProvider);
   return await db.getRecentVitalLogs(limit: 5);
+});
+
+// Active Reminders Count Provider
+final activeRemindersCountProvider = FutureProvider<int>((ref) async {
+  final db = ref.watch(databaseHelperProvider);
+  final reminders = await db.getActiveReminders();
+  return reminders.length;
+});
+
+// Secure Key Storage Provider
+final secureKeyStorageProvider = Provider<SecureKeyStorage>((ref) {
+  return SecureKeyStorage();
+});
+
+// App Startup Provider: determines initial destination based on persistent session
+final appStartupProvider = FutureProvider<Widget>((ref) async {
+  final storage = ref.watch(secureKeyStorageProvider);
+  final isSessionActive = await storage.readSecureToken('nabd_user_session_active');
+  if (isSessionActive == 'true') {
+    return const MainScreen();
+  }
+  final isOnboardingDone = await storage.readSecureToken('nabd_onboarding_completed');
+  if (isOnboardingDone == 'true') {
+    return const AuthScreen();
+  }
+  return const OnboardingScreen();
 });

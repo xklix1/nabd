@@ -61,6 +61,7 @@ class SecurityGateWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final securityAsync = ref.watch(deviceSecurityStatusProvider);
+    final startupAsync = ref.watch(appStartupProvider);
     final lang = ref.watch(languageProvider);
 
     return securityAsync.when(
@@ -102,7 +103,13 @@ class SecurityGateWrapper extends ConsumerWidget {
             ),
           );
         }
-        return const OnboardingScreen();
+        return startupAsync.when(
+          data: (screen) => screen,
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const OnboardingScreen(),
+        );
       },
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),

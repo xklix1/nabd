@@ -5,8 +5,8 @@ import '../constants/medical_references.dart';
 import 'seed_medications.dart';
 
 class DatabaseHelper {
-  static const String _databaseName = 'nabd_secure_v2.db';
-  static const int _databaseVersion = 2;
+  static const String _databaseName = 'nabd_secure_v3.db';
+  static const int _databaseVersion = 3;
 
   final SecureKeyStorage _keyStorage;
   Database? _db;

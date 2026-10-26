@@ -192,6 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             curve: Curves.easeInOut,
                           );
                         } else {
+                          ref.read(secureKeyStorageProvider).saveSecureToken('nabd_onboarding_completed', 'true');
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (_) => const AuthScreen()),

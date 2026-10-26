@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/medical_references.dart';
-import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/medical_disclaimer_card.dart';
@@ -34,7 +33,7 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppStrings.get('service_meds', lang),
+          isArabic ? 'دليل الأدوية الشامل (100 دواء)' : 'Comprehensive Medications (100 Meds)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),

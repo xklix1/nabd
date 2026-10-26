@@ -4,6 +4,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/medical_disclaimer_card.dart';
+import '../../auth/presentation/auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -269,6 +270,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
               loading: () => const LinearProgressIndicator(),
               error: (err, _) => Text(err.toString()),
+            ),
+            const SizedBox(height: 16),
+
+            // Logout / Switch Profile Tile
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                title: Text(
+                  isArabic ? 'تسجيل الخروج / تبديل الحساب' : 'Log Out / Switch Account',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent, fontSize: 14),
+                ),
+                subtitle: Text(
+                  isArabic
+                      ? 'العودة لشاشة الدخول والبدء كحساب جديد أو زائر'
+                      : 'Return to login screen to sign in or use another profile',
+                  style: const TextStyle(fontSize: 11),
+                ),
+                trailing: const Icon(Icons.chevron_left_rounded),
+                onTap: () async {
+                  await ref.read(secureKeyStorageProvider).deleteKey('nabd_user_session_active');
+                  if (!context.mounted) return;
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (route) => false,
+                  );
+                },
+              ),
             ),
 
             const SizedBox(height: 24),

@@ -17,7 +17,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _navigateToDashboard() {
+  void _navigateToDashboard() async {
+    await ref.read(secureKeyStorageProvider).saveSecureToken('nabd_user_session_active', 'true');
+    await ref.read(secureKeyStorageProvider).saveSecureToken('nabd_onboarding_completed', 'true');
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const MainScreen()),
