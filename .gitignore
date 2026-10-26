@@ -1,0 +1,40 @@
+# Flutter/Dart output
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.pub-cache/
+.pub/
+
+# Android
+android/**/gradle-wrapper.jar
+android/.gradle
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+android/app/release/
+
+# iOS
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Pods/
+ios/.symlinks/
+ios/profile/
+ios/release/
+
+# Keystores & sensitive credentials
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+key.properties
+
+# Environment & database backups
+*.env
+*.db
+!assets/database/nabd_seed.enc

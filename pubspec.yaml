@@ -1,0 +1,55 @@
+name: nabd
+description: "Nabd (نبض) - Cross-Platform Offline-First Mobile Health Application"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Offline Encrypted Database
+  sqflite_sqlcipher: ^3.1.0+1
+  path: ^1.9.0
+
+  # Hardware-Backed Key Storage (Keystore / Keychain)
+  flutter_secure_storage: ^9.2.2
+
+  # Offline Medication Reminders
+  flutter_local_notifications: ^17.2.1+2
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
+
+  # Security & Biometrics
+  local_auth: ^2.3.0
+  safe_device: ^1.1.4
+
+  # Internationalization & Fonts
+  intl: ^0.19.0
+  google_fonts: ^6.2.1
+
+  # Cryptography (SHA-256 update integrity verification)
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/database/
+    - assets/icons/
