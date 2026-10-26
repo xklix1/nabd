@@ -17,7 +17,7 @@ class SecureKeyStorage {
                 resetOnError: false,
               ),
               iOptions: IOSOptions(
-                accessibility: KeychainAccessibility.first_unlock_this_device_only,
+                accessibility: KeychainAccessibility.first_unlock,
                 synchronizable: false,
               ),
             );

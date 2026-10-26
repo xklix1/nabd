@@ -209,9 +209,24 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                           typeLabel = isArabic ? 'مرض' : 'Disease';
                         }
 
+                        final activeIngredient = isArabic
+                            ? item['active_ingredient_ar']
+                            : item['active_ingredient_en'];
+
                         return ListTile(
                           leading: Icon(icon, color: AppColors.primaryBlue),
                           title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          subtitle: activeIngredient != null
+                              ? Text(
+                                  activeIngredient,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : null,
                           trailing: Chip(
                             label: Text(typeLabel, style: const TextStyle(fontSize: 10)),
                             padding: EdgeInsets.zero,

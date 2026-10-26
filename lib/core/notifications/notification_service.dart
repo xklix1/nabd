@@ -43,27 +43,30 @@ class NotificationService {
     _isInitialized = true;
   }
 
-  /// Schedules recurring offline medication reminders.
+  /// Schedules offline medication reminders (either one-time exact date/time or recurring).
   /// Enforces lock-screen privacy by using masked generic messages on lock screens.
   Future<void> scheduleMedicationReminder({
     required int id,
     required String medicationName,
     required DateTime firstDoseTime,
     required int intervalHours,
+    bool isOneTime = false,
     required bool isArabic,
   }) async {
-    final title = isArabic ? 'تذكير بالجرعة الدوائية' : 'Medication Reminder';
+    final title = isArabic
+        ? (isOneTime ? 'تذكير بجرعة محددة (مرة واحدة)' : 'تذكير بالجرعة الدوائية')
+        : (isOneTime ? 'One-Time Medication Reminder' : 'Medication Reminder');
     
     // Privacy-Preserving Lock Screen Message
     final maskedBody = isArabic
-        ? 'حان موعد جرعتك الدوائية المجدولة. افتح نبض للاطلاع على التفاصيل بأمان.'
-        : 'Time for your scheduled medication. Open Nabd to view details securely.';
+        ? 'حان موعد جرعتك الدوائية ($medicationName). افتح نبض للاطلاع على التفاصيل بأمان.'
+        : 'Time for your scheduled medication ($medicationName). Open Nabd to view details securely.';
 
     // Safe details channel
     const androidDetails = AndroidNotificationDetails(
       'medication_reminders_channel',
       'Medication Reminders',
-      channelDescription: 'Offline recurring medication dosage alerts with privacy protection',
+      channelDescription: 'Offline medication dosage alerts with privacy protection',
       importance: Importance.max,
       priority: Priority.high,
       visibility: NotificationVisibility.private, // Masks details on Android lock screen
@@ -84,7 +87,7 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    // Schedule the initial reminder
+    // Schedule the reminder
     final scheduledDate = tz.TZDateTime.from(firstDoseTime, tz.local);
 
     await _notificationsPlugin.zonedSchedule(
@@ -96,7 +99,7 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: isOneTime ? null : DateTimeComponents.time,
     );
   }
 

@@ -11,6 +11,8 @@ class AppColors {
   static const Color primaryLightBlue = Color(0xFFEDF5FF);  // Soft Tonal Blue Background
   static const Color secondaryTeal = Color(0xFF007D79);     // Clinical Vitality Teal
   static const Color secondaryLightTeal = Color(0xFFE5F6F5);
+  static const Color accentTeal = Color(0xFF007D79);
+  static const Color darkCardBg = Color(0xFF222B35);
 
   // Status & Health Indicator Colors (Strict Medical Interpretation)
   static const Color statusNormal = Color(0xFF198038);      // Safe / Normal Reference Range (Green)

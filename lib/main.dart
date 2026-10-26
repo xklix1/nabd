@@ -62,7 +62,6 @@ class SecurityGateWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final securityAsync = ref.watch(deviceSecurityStatusProvider);
     final lang = ref.watch(languageProvider);
-    final isArabic = lang == 'ar';
 
     return securityAsync.when(
       data: (status) {

@@ -66,15 +66,39 @@ class MedicalDisclaimerCard extends StatelessWidget {
             const SizedBox(height: 8),
             Divider(color: borderColor, thickness: 0.5),
             const SizedBox(height: 4),
-            Text(
-              isArabic
-                  ? 'المصدر المعتمد: $specificSource'
-                  : 'Official Source: $specificSource',
-              style: TextStyle(
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+            InkWell(
+              onTap: () {
+                if (specificSource!.contains('EDA') || specificSource!.contains('هيئة الدواء')) {
+                  MedicalReferences.launchSourceUrl(MedicalReferences.urlEDA);
+                } else if (specificSource!.contains('MOHP') || specificSource!.contains('وزارة الصحة')) {
+                  MedicalReferences.launchSourceUrl(MedicalReferences.urlMOHP);
+                } else {
+                  MedicalReferences.launchSourceUrl(MedicalReferences.urlWHO);
+                }
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.verified_rounded, size: 14, color: AppColors.accentTeal),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        isArabic
+                            ? 'المصدر المعتمد: $specificSource (انقر للمصدر الرسمي)'
+                            : 'Official Source: $specificSource (Tap to view)',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.accentTeal,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.open_in_new_rounded, size: 13, color: AppColors.accentTeal),
+                  ],
+                ),
               ),
             ),
           ],

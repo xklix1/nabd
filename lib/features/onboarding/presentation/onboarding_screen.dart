@@ -186,7 +186,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ? null
                     : () {
                         if (_currentPage < pages.length - 1) {
-                          _pageController.nextPage(
+                          _pageController.animateToPage(
+                            _currentPage + 1,
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                           );

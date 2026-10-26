@@ -31,14 +31,16 @@ dependencies:
 
   # Security & Biometrics
   local_auth: ^2.3.0
-  safe_device: ^1.1.4
 
   # Internationalization & Fonts
-  intl: ^0.19.0
+  intl: ^0.20.3
   google_fonts: ^6.2.1
 
   # Cryptography (SHA-256 update integrity verification)
   crypto: ^3.0.3
+
+  # Web Link Launcher for Official Medical Sources
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:

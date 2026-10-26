@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nabd.healthapp">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Local Notifications & Reminders (Offline-First) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -15,6 +14,18 @@
     <!-- On-demand Database Updates (HTTPS TLS 1.3 only) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Queries for url_launcher to open official medical links (EDA / WHO / MOHP) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
 
     <application
         android:label="نبض | Nabd"

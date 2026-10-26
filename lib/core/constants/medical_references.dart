@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
 
 enum HealthRangeStatus {
@@ -16,6 +17,25 @@ class MedicalReferences {
   static const String sourceWHO = 'World Health Organization (WHO)';
   static const String sourceEDA = 'Egyptian Drug Authority (EDA)';
   static const String sourceMOHP = 'Ministry of Health and Population - Egypt';
+
+  // Official Verified Web Links
+  static const String urlEDA = 'https://edaegypt.gov.eg';
+  static const String urlWHO = 'https://www.who.int';
+  static const String urlWHOEML = 'https://www.who.int/groups/expert-committee-on-selection-and-use-of-essential-medicines/essential-medicines-lists';
+  static const String urlMOHP = 'https://mohp.gov.eg';
+
+  /// Launches official regulatory and health authority links in external browser.
+  static Future<void> launchSourceUrl(String? url) async {
+    final target = (url != null && url.isNotEmpty) ? url : urlEDA;
+    final uri = Uri.parse(target);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error opening medical source: $e');
+    }
+  }
 
   static const String disclaimerAr =
       'المحتوى المعروض في هذا التطبيق هو لأغراض تثقيفية وإعلامية عامة فقط، '

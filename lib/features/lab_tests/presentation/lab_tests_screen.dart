@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/medical_references.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
@@ -178,13 +179,37 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                isArabic ? 'المصدر المعتمد: $source' : 'Official Source: $source',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                              const SizedBox(height: 10),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () => MedicalReferences.launchSourceUrl(item['official_url'] ?? MedicalReferences.urlWHO),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accentTeal.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.accentTeal.withOpacity(0.3)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.verified_rounded, size: 15, color: AppColors.accentTeal),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          isArabic
+                                              ? 'المصدر المعتمد: $source (اضغط لفتح المصدر الرسمي)'
+                                              : 'Official Source: $source (Tap to view official page)',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.accentTeal,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.open_in_new_rounded, size: 14, color: AppColors.accentTeal),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
