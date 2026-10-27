@@ -17,3 +17,7 @@
 
 # Local Notifications
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
+
+# Play Core deferred components
+-dontwarn com.google.android.play.core.**
+
