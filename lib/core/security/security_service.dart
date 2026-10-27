@@ -83,8 +83,14 @@ class SecurityService {
     required bool isArabic,
   }) async {
     try {
-      final canAuth = await _checkBiometricAvailability();
-      if (!canAuth) return true; // Graceful fallback if device lacks biometrics
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final enrolled = await _localAuth.getAvailableBiometrics();
+
+      // If hardware is missing or no biometrics enrolled in device settings,
+      // fallback gracefully to prevent blocking device holders
+      if (!canCheck && enrolled.isEmpty) {
+        return true;
+      }
 
       return await _localAuth.authenticate(
         localizedReason: isArabic ? reasonAr : reasonEn,
@@ -93,7 +99,10 @@ class SecurityService {
           biometricOnly: false,
         ),
       );
-    } on PlatformException {
+    } on PlatformException catch (e) {
+      if (e.code == 'PasscodeNotSet' || e.code == 'NotAvailable' || e.code == 'NotEnrolled') {
+        return true;
+      }
       return false;
     }
   }

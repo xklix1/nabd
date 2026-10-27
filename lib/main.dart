@@ -4,22 +4,53 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/providers/app_providers.dart';
+import 'core/security/secure_key_storage.dart';
 import 'core/theme/app_theme.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize offline background notification channels
+  // Initialize offline medical alarm notification channels
   try {
     await NotificationService().initialize();
   } catch (_) {
     // Graceful fallback if running in non-mobile test runner
   }
 
+  // Preload user preferences from hardware-backed secure storage for zero-flicker startup
+  final storage = SecureKeyStorage();
+  ThemeMode initialTheme = ThemeMode.light;
+  String initialLanguage = 'ar';
+  bool initialBiometric = false;
+
+  try {
+    final savedTheme = await storage.readSecureToken('nabd_theme_mode');
+    if (savedTheme == 'dark') {
+      initialTheme = ThemeMode.dark;
+    } else if (savedTheme == 'light') {
+      initialTheme = ThemeMode.light;
+    }
+
+    final savedLang = await storage.readSecureToken('nabd_language_code');
+    if (savedLang == 'ar' || savedLang == 'en') {
+      initialLanguage = savedLang!;
+    }
+
+    final savedBiometric = await storage.readSecureToken('nabd_biometric_enabled');
+    initialBiometric = savedBiometric == 'true';
+  } catch (_) {
+    // Non-fatal fallback
+  }
+
   runApp(
-    const ProviderScope(
-      child: NabdApp(),
+    ProviderScope(
+      overrides: [
+        initialThemeModeProvider.overrideWithValue(initialTheme),
+        initialLanguageProvider.overrideWithValue(initialLanguage),
+        initialBiometricLockProvider.overrideWithValue(initialBiometric),
+      ],
+      child: const NabdApp(),
     ),
   );
 }

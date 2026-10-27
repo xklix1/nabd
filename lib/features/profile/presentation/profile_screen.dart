@@ -14,15 +14,100 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  bool _biometricEnabled = false;
   bool _isCheckingUpdate = false;
   String? _updateStatusMessage;
+
+  Future<void> _toggleBiometricLock(bool currentVal, bool isArabic) async {
+    final security = ref.read(securityServiceProvider);
+    if (!currentVal) {
+      final auth = await security.authenticateBiometrically(
+        reasonAr: 'يرجى تأكيد هويتك بالبصمة لتفعيل القفل',
+        reasonEn: 'Please authenticate to enable biometric lock',
+        isArabic: isArabic,
+      );
+      if (auth) {
+        await ref.read(biometricLockProvider.notifier).setBiometricLock(true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isArabic
+                    ? '✅ تم تفعيل قفل السجل الطبي بالبصمة بنجاح'
+                    : '✅ Biometric lock enabled successfully',
+              ),
+              backgroundColor: AppColors.statusNormal,
+            ),
+          );
+        }
+      } else if (mounted) {
+        // Biometric prompt was dismissed or unconfigured; offer direct confirmation
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.fingerprint_rounded, color: AppColors.primaryBlue),
+                const SizedBox(width: 8),
+                Text(isArabic ? 'تأمين السجل الطبي' : 'Protect Medical Record'),
+              ],
+            ),
+            content: Text(
+              isArabic
+                  ? 'هل تريد تفعيل قفل السجل الطبي لحماية بياناتك الصحية وأدويتك عند كل فتح للتطبيق؟'
+                  : 'Do you want to enable app lock to protect your medical records each time the app is opened?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue),
+                child: Text(isArabic ? 'تأكيد التفعيل' : 'Confirm Enable'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm == true) {
+          await ref.read(biometricLockProvider.notifier).setBiometricLock(true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isArabic
+                      ? '✅ تم تفعيل قفل السجل الطبي بنجاح'
+                      : '✅ Medical record lock enabled successfully',
+                ),
+                backgroundColor: AppColors.statusNormal,
+              ),
+            );
+          }
+        }
+      }
+    } else {
+      await ref.read(biometricLockProvider.notifier).setBiometricLock(false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isArabic
+                  ? 'تم إيقاف قفل السجل الطبي بالبصمة'
+                  : 'Biometric lock disabled',
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider);
     final isArabic = lang == 'ar';
     final themeMode = ref.watch(themeModeProvider);
+    final biometricEnabled = ref.watch(biometricLockProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -121,6 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                   // Dark Mode Toggle
                   ListTile(
+                    onTap: () => ref.read(themeModeProvider.notifier).toggleTheme(),
                     leading: Icon(
                       themeMode == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                       color: AppColors.primaryBlue,
@@ -135,6 +221,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                   // Biometric Security Toggle
                   ListTile(
+                    onTap: () => _toggleBiometricLock(biometricEnabled, isArabic),
                     leading: const Icon(Icons.fingerprint_rounded, color: AppColors.primaryBlue),
                     title: Text(isArabic ? 'قفل السجل الطبي بالبصمة' : 'Biometric App Lock'),
                     subtitle: Text(
@@ -144,22 +231,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: const TextStyle(fontSize: 11),
                     ),
                     trailing: Switch(
-                      value: _biometricEnabled,
-                      onChanged: (val) async {
-                        if (val) {
-                          final security = ref.read(securityServiceProvider);
-                          final auth = await security.authenticateBiometrically(
-                            reasonAr: 'يرجى تأكيد هويتك لتفعيل القفل البيومتري',
-                            reasonEn: 'Please authenticate to enable biometric lock',
-                            isArabic: isArabic,
-                          );
-                          if (auth) {
-                            setState(() => _biometricEnabled = true);
-                          }
-                        } else {
-                          setState(() => _biometricEnabled = false);
-                        }
-                      },
+                      value: biometricEnabled,
+                      onChanged: (val) => _toggleBiometricLock(biometricEnabled, isArabic),
                     ),
                   ),
                 ],

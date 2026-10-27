@@ -55,3 +55,4 @@ flutter:
   assets:
     - assets/database/
     - assets/icons/
+    - assets/sounds/

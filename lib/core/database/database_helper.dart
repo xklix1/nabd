@@ -4,10 +4,11 @@ import '../security/secure_key_storage.dart';
 import '../constants/medical_references.dart';
 import 'seed_medications.dart';
 import 'seed_lab_tests.dart';
+import 'seed_diseases.dart';
 
 class DatabaseHelper {
-  static const String _databaseName = 'nabd_secure_v4.db';
-  static const int _databaseVersion = 4;
+  static const String _databaseName = 'nabd_secure_v5.db';
+  static const int _databaseVersion = 5;
 
   final SecureKeyStorage _keyStorage;
   Database? _db;
@@ -46,7 +47,7 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Medications Table (Comprehensive schema with Active Ingredients and Web Links)
+    // 1. Medications Table (Comprehensive Egyptian Catalog with Form & Manufacturer)
     await db.execute('''
       CREATE TABLE medications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,6 +58,9 @@ class DatabaseHelper {
         active_ingredient_en TEXT NOT NULL,
         category_ar TEXT NOT NULL,
         category_en TEXT NOT NULL,
+        dosage_form_ar TEXT NOT NULL DEFAULT '',
+        dosage_form_en TEXT NOT NULL DEFAULT '',
+        company TEXT NOT NULL DEFAULT '',
         indications_ar TEXT NOT NULL,
         indications_en TEXT NOT NULL,
         side_effects_ar TEXT NOT NULL,
@@ -72,8 +76,10 @@ class DatabaseHelper {
     ''');
     await db.execute('CREATE INDEX idx_med_names ON medications(name_ar, name_en, scientific_name);');
     await db.execute('CREATE INDEX idx_med_search ON medications(search_tokens);');
+    await db.execute('CREATE INDEX idx_med_active ON medications(active_ingredient_en, active_ingredient_ar);');
+    await db.execute('CREATE INDEX idx_med_category ON medications(category_en, category_ar);');
 
-    // 2. Lab Tests Table
+    // 2. Lab Tests Table (150+ Tests)
     await db.execute('''
       CREATE TABLE lab_tests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,12 +97,14 @@ class DatabaseHelper {
     ''');
     await db.execute('CREATE INDEX idx_lab_names ON lab_tests(name_ar, name_en, code);');
 
-    // 3. Diseases & Medical Conditions Table
+    // 3. Diseases & Medical Conditions Table (150+ Conditions)
     await db.execute('''
       CREATE TABLE diseases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name_ar TEXT NOT NULL,
         name_en TEXT NOT NULL,
+        category_ar TEXT NOT NULL DEFAULT 'عام',
+        category_en TEXT NOT NULL DEFAULT 'General',
         overview_ar TEXT NOT NULL,
         overview_en TEXT NOT NULL,
         causes_ar TEXT NOT NULL,
@@ -112,6 +120,7 @@ class DatabaseHelper {
       );
     ''');
     await db.execute('CREATE INDEX idx_disease_names ON diseases(name_ar, name_en);');
+    await db.execute('CREATE INDEX idx_disease_cat ON diseases(category_ar, category_en);');
 
     // 4. Personal Vital Signs Logs (Encrypted Local PHI)
     await db.execute('''
@@ -148,52 +157,33 @@ class DatabaseHelper {
   Future<void> _seedInitialMedicalData(Database db) async {
     final batch = db.batch();
 
-    // 1. Insert Verified Egyptian Medications (150+)
+    // 1. Insert Egyptian Medications (230+)
     for (final med in getInitialMedications()) {
       batch.insert('medications', med);
     }
 
-    // 2. Insert Comprehensive Medical Lab Tests (60+)
+    // 2. Insert Comprehensive Medical Lab Tests (150+)
     for (final lab in getInitialLabTests()) {
       batch.insert('lab_tests', lab);
     }
 
-    // 3. Verified Sample Diseases
-    batch.insert('diseases', {
-      'name_ar': 'ارتفاع ضغط الدم الأساسي',
-      'name_en': 'Essential Hypertension',
-      'overview_ar': 'حالة شائعة تكون فيها قوة ضغط الدم طويلة الأمد على جدران الشرايين مرتفعة بما يكفي للتسبب بمشاكل صحية إذا تُركت دون متابعة.',
-      'overview_en': 'A common chronic condition in which the long-term force of blood against artery walls remains consistently elevated.',
-      'causes_ar': 'عوامل وراثية، زيادة تناول الصوديوم في الطعام، قلة النشاط البدني، التوتر والتدخين والتقدم في العمر.',
-      'causes_en': 'Genetic predisposition, high dietary sodium intake, physical inactivity, chronic stress, smoking, and age.',
-      'symptoms_ar': 'يُعرف بالقاتل الصامت لعدم وجود أعراض مبكرة في معظم الحالات. قد يظهر صداع خفيف أو دوار في حالات الارتفاع الشديد.',
-      'symptoms_en': 'Often called the silent killer because it typically produces no early symptoms. Severe spikes may cause headaches or dizziness.',
-      'prevention_ar': 'اتباع نظام غذائي متوازن قليل الملح، ممارسة الرياضة بانتظام، الحفاظ على وزن صحي، والامتناع عن التدخين.',
-      'prevention_en': 'Adopt a low-sodium balanced diet, engage in regular aerobic exercise, maintain healthy weight, and avoid tobacco.',
-      'initial_care_ar': 'الراحة في مكان هادئ، قياس الضغط بجهاز معتمد، والتواصل الفوري مع الطبيب أو الطوارئ عند تجاوز القراءة 180/120 ملم زئبق.',
-      'initial_care_en': 'Rest quietly, re-check reading with a validated monitor, and seek emergency medical evaluation if reading exceeds 180/120 mmHg.',
-      'official_source': '${MedicalReferences.sourceWHO} / ${MedicalReferences.sourceMOHP}',
-      'official_url': MedicalReferences.urlWHO,
-    });
-
-    batch.insert('diseases', {
-      'name_ar': 'السكري من النوع الثاني',
-      'name_en': 'Type 2 Diabetes Mellitus',
-      'overview_ar': 'اضطراب أيضي مزمن يتسم بمقاومة خلايا الجسم للأنسولين ونقص نسبي في إفرازه، مما يؤدي إلى ارتفاع الجلوكوز في الدم.',
-      'overview_en': 'A chronic metabolic disorder characterized by insulin resistance and relative insulin deficiency leading to hyperglycemia.',
-      'causes_ar': 'مزيج من الاستعداد الوراثي، السمنة، نمط الحياة الخامل، وسوء التغذية.',
-      'causes_en': 'Combination of genetic susceptibility, obesity, sedentary lifestyle, and dietary factors.',
-      'symptoms_ar': 'زيادة العطش، كثرة التبول، الشعور المستمر بالإرهاق، بطء التئام الجروح، وتغيرات في الرؤية.',
-      'symptoms_en': 'Increased thirst, frequent urination, persistent fatigue, slow-healing sores, and blurred vision.',
-      'prevention_ar': 'الحفاظ على مؤشر كتلة جسم صحي، تقليل السكريات المكررة، وممارسة النشاط البدني لمدة 150 دقيقة أسبوعياً.',
-      'prevention_en': 'Maintain healthy body weight, limit refined sugars and carbohydrates, and perform 150 minutes of weekly exercise.',
-      'initial_care_ar': 'مراقبة سكر الدم بانتظام والالتزام الصارم بالإرشادات الغذائية الموصوفة من الطبيب المختص.',
-      'initial_care_en': 'Perform routine blood glucose monitoring and strictly adhere to dietary guidance from your healthcare provider.',
-      'official_source': '${MedicalReferences.sourceWHO} / ${MedicalReferences.sourceMOHP}',
-      'official_url': MedicalReferences.urlWHO,
-    });
+    // 3. Insert Comprehensive Medical Diseases Encyclopedia (150+)
+    for (final disease in getInitialDiseases()) {
+      batch.insert('diseases', disease);
+    }
 
     await batch.commit(noResult: true);
+  }
+
+  /// Normalizes Arabic text for flexible matching (alif forms, taa marbuta, yaa, diacritics).
+  static String normalizeArabicText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[أإآا]'), 'ا')
+        .replaceAll('ة', 'ه')
+        .replaceAll('ى', 'ي')
+        .replaceAll(RegExp(r'[\u064B-\u065F]'), '')
+        .trim();
   }
 
   // Safe Parameterized Search Methods (OWASP SQLi Prevention)
@@ -255,6 +245,38 @@ class DatabaseHelper {
     return res.isNotEmpty ? res.first : null;
   }
 
+  /// Get direct equivalents (المثائل) and therapeutic alternatives (البدائل)
+  Future<List<Map<String, dynamic>>> getMedicationSubstitutes({
+    required int medicationId,
+    required String activeIngredientEn,
+    required String activeIngredientAr,
+    String? categoryEn,
+  }) async {
+    final db = await database;
+    // 1. Direct identical active ingredient substitutes (المثائل المتطابقة)
+    final exact = await db.rawQuery('''
+      SELECT * FROM medications
+      WHERE id != ? AND (
+        active_ingredient_en = ? OR active_ingredient_ar = ? OR scientific_name = ?
+      )
+      ORDER BY name_ar ASC;
+    ''', [medicationId, activeIngredientEn, activeIngredientAr, activeIngredientEn]);
+
+    if (exact.isNotEmpty) return exact;
+
+    // 2. Therapeutic class alternatives (البدائل العلاجية من نفس العائلة الدوائية)
+    if (categoryEn != null && categoryEn.isNotEmpty) {
+      return await db.rawQuery('''
+        SELECT * FROM medications
+        WHERE id != ? AND category_en = ?
+        ORDER BY name_ar ASC
+        LIMIT 10;
+      ''', [medicationId, categoryEn]);
+    }
+
+    return [];
+  }
+
   Future<List<Map<String, dynamic>>> getLabTests({String? filter}) async {
     final db = await database;
     if (filter != null && filter.trim().isNotEmpty) {
@@ -268,15 +290,32 @@ class DatabaseHelper {
     return await db.query('lab_tests', orderBy: 'name_ar ASC');
   }
 
-  Future<List<Map<String, dynamic>>> getDiseases({String? filter}) async {
+  Future<List<Map<String, dynamic>>> getDiseases({String? filter, String? category}) async {
     final db = await database;
+    if (category != null && category.isNotEmpty && category != 'all') {
+      if (filter != null && filter.trim().isNotEmpty) {
+        final q = '%${filter.trim()}%';
+        return await db.rawQuery('''
+          SELECT * FROM diseases
+          WHERE (category_ar = ? OR category_en = ?) AND (name_ar LIKE ? OR name_en LIKE ?)
+          ORDER BY name_ar ASC;
+        ''', [category, category, q, q]);
+      }
+      return await db.query(
+        'diseases',
+        where: 'category_ar = ? OR category_en = ?',
+        whereArgs: [category, category],
+        orderBy: 'name_ar ASC',
+      );
+    }
+
     if (filter != null && filter.trim().isNotEmpty) {
       final q = '%${filter.trim()}%';
       return await db.rawQuery('''
         SELECT * FROM diseases
-        WHERE name_ar LIKE ? OR name_en LIKE ?
+        WHERE name_ar LIKE ? OR name_en LIKE ? OR category_ar LIKE ? OR category_en LIKE ?
         ORDER BY name_ar ASC;
-      ''', [q, q]);
+      ''', [q, q, q, q]);
     }
     return await db.query('diseases', orderBy: 'name_ar ASC');
   }

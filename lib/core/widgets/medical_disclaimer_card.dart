@@ -81,7 +81,7 @@ class MedicalDisclaimerCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_rounded, size: 14, color: AppColors.accentTeal),
+                    const Icon(Icons.verified_rounded, size: 14, color: AppColors.secondaryTeal),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -91,12 +91,12 @@ class MedicalDisclaimerCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.accentTeal,
+                          color: AppColors.secondaryTeal,
                           decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
-                    const Icon(Icons.open_in_new_rounded, size: 13, color: AppColors.accentTeal),
+                    const Icon(Icons.open_in_new_rounded, size: 13, color: AppColors.secondaryTeal),
                   ],
                 ),
               ),

@@ -10,6 +10,7 @@ build/
 # Android
 android/**/gradle-wrapper.jar
 android/.gradle
+android/.kotlin/
 android/captures/
 android/gradlew
 android/gradlew.bat
@@ -19,6 +20,7 @@ android/app/release/
 
 # iOS
 ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
 ios/Flutter/app.framework
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec

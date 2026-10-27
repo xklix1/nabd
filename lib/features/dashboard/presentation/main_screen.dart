@@ -23,12 +23,18 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen> {
   int _currentIndex = 0;
 
+  void _onSelectTab(int index) {
+    setState(() => _currentIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     final screens = [
-      const _DashboardTabView(),
+      _DashboardTabView(onSelectTab: _onSelectTab),
       const MedicationsScreen(),
       const LabTestsScreen(),
       const CalculatorsScreen(),
@@ -36,44 +42,139 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ];
 
     return Scaffold(
-      body: screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      extendBody: false,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: _ModernFloatingNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home_rounded),
-            label: AppStrings.get('nav_home', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.medication_outlined),
-            activeIcon: const Icon(Icons.medication_rounded),
-            label: AppStrings.get('nav_medications', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.biotech_outlined),
-            activeIcon: const Icon(Icons.biotech_rounded),
-            label: AppStrings.get('nav_labs', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calculate_outlined),
-            activeIcon: const Icon(Icons.calculate_rounded),
-            label: AppStrings.get('nav_calc', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person_outline_rounded),
-            activeIcon: const Icon(Icons.person_rounded),
-            label: AppStrings.get('nav_profile', lang),
-          ),
-        ],
+        onTap: _onSelectTab,
+        lang: lang,
+        isDark: isDark,
       ),
     );
   }
 }
 
+class _ModernFloatingNavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final String lang;
+  final bool isDark;
+
+  const _ModernFloatingNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.lang,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _NavItem(Icons.home_outlined, Icons.home_rounded, AppStrings.get('nav_home', lang)),
+      _NavItem(Icons.medication_outlined, Icons.medication_rounded, AppStrings.get('nav_medications', lang)),
+      _NavItem(Icons.biotech_outlined, Icons.biotech_rounded, AppStrings.get('nav_labs', lang)),
+      _NavItem(Icons.calculate_outlined, Icons.calculate_rounded, AppStrings.get('nav_calc', lang)),
+      _NavItem(Icons.person_outline_rounded, Icons.person_rounded, AppStrings.get('nav_profile', lang)),
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 580),
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF131D2E) : Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark ? const Color(0xFF22314E) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.35 : 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(items.length, (index) {
+                final item = items[index];
+                final isSelected = currentIndex == index;
+                return InkWell(
+                  onTap: () => onTap(index),
+                  borderRadius: BorderRadius.circular(20),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeInOut,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSelected ? 12 : 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (isDark
+                              ? AppColors.primaryBlue.withOpacity(0.2)
+                              : AppColors.primaryBlue.withOpacity(0.12))
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isSelected ? item.activeIcon : item.icon,
+                          color: isSelected
+                              ? AppColors.primaryBlue
+                              : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                          size: 22,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primaryBlue
+                                : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+);
+}
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  _NavItem(this.icon, this.activeIcon, this.label);
+}
+
 class _DashboardTabView extends ConsumerStatefulWidget {
-  const _DashboardTabView();
+  final ValueChanged<int> onSelectTab;
+  const _DashboardTabView({required this.onSelectTab});
 
   @override
   ConsumerState<_DashboardTabView> createState() => _DashboardTabViewState();
@@ -291,7 +392,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                               Text(
                                 isArabic
                                     ? 'قاعدة بيانات دوائية وطبية شاملة، موثقة ومعتمدة بالكامل دون الحاجة لأي اتصال بالإنترنت.'
-                                    : 'Comprehensive medical encyclopedia with 100 medications, lab tests, and health tools 100% offline.',
+                                    : 'Comprehensive medical reference with 230+ medications, 150+ lab tests, and 150+ diseases 100% offline.',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 12,
@@ -320,15 +421,19 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                       children: [
                         _buildHeroBadge(
                           icon: Icons.medication_rounded,
-                          label: isArabic ? '150+ دواء مصري' : '150+ Egyptian Meds',
+                          label: isArabic ? '230+ دواء مصري بالبدائل' : '230+ Egyptian Meds & Subs',
                         ),
                         _buildHeroBadge(
                           icon: Icons.biotech_rounded,
-                          label: isArabic ? '60 فحص مخبري' : '60 Lab Tests',
+                          label: isArabic ? '150+ فحص مخبري' : '150+ Lab Tests',
+                        ),
+                        _buildHeroBadge(
+                          icon: Icons.health_and_safety_rounded,
+                          label: isArabic ? '150+ حالة بالمرجع الطبي' : '150+ Diseases',
                         ),
                         _buildHeroBadge(
                           icon: Icons.offline_bolt_rounded,
-                          label: isArabic ? 'يعمل بلا إنترنت' : '100% Offline',
+                          label: isArabic ? '100% يعمل بلا إنترنت' : '100% Offline',
                         ),
                       ],
                     ),
@@ -519,9 +624,9 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                               ),
                               onTap: () {
                                 if (type == 'medication') {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationsScreen()));
+                                  widget.onSelectTab(1);
                                 } else if (type == 'lab_test') {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LabTestsScreen()));
+                                  widget.onSelectTab(2);
                                 } else {
                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseasesScreen()));
                                 }
@@ -683,26 +788,26 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                 children: [
                   _buildServiceCard(
                     title: isArabic ? 'دليل الأدوية' : 'Medications',
-                    badge: isArabic ? '150+ دواء' : '150+ Meds',
-                    subtitle: isArabic ? 'الجرعات، التفاعلات، والمحاذير' : 'Dosages, interactions & warnings',
+                    badge: isArabic ? '230+ بالبدائل' : '230+ Meds',
+                    subtitle: isArabic ? 'الأسماء، المواد الفعالة، والبدائل المصرية' : 'Trade names, actives & Egyptian substitutes',
                     icon: Icons.medication_rounded,
                     color: AppColors.primaryBlue,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationsScreen())),
+                    onTap: () => widget.onSelectTab(1),
                     isDark: isDark,
                   ),
                   _buildServiceCard(
                     title: isArabic ? 'دليل التحاليل' : 'Lab Tests',
-                    badge: isArabic ? '60 فحصاً' : '60 Tests',
-                    subtitle: isArabic ? 'المعدلات الطبيعية والتفسير' : 'Normal ranges & explanations',
+                    badge: isArabic ? '150+ فحصاً' : '150+ Tests',
+                    subtitle: isArabic ? 'المعدلات الطبيعية، العينات، والتفسير' : 'Normal ranges, specimen & interpretation',
                     icon: Icons.biotech_rounded,
                     color: AppColors.secondaryTeal,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabTestsScreen())),
+                    onTap: () => widget.onSelectTab(2),
                     isDark: isDark,
                   ),
                   _buildServiceCard(
                     title: isArabic ? 'الموسوعة المرضية' : 'Diseases',
-                    badge: isArabic ? 'موثق' : 'Verified',
-                    subtitle: isArabic ? 'الأعراض، الأسباب، والوقاية' : 'Symptoms, causes & prevention',
+                    badge: isArabic ? '150+ حالة موثقة' : '150+ Verified',
+                    subtitle: isArabic ? 'الأعراض، الأسباب، والوقاية والمراجع' : 'Symptoms, causes, prevention & sources',
                     icon: Icons.health_and_safety_rounded,
                     color: const Color(0xFF8A3FFC),
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseasesScreen())),
@@ -710,11 +815,11 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                   ),
                   _buildServiceCard(
                     title: isArabic ? 'الحاسبة الصحية' : 'Health Calc',
-                    badge: isArabic ? '3 أدوات' : '3 Tools',
-                    subtitle: isArabic ? 'كتلة الجسم، السعرات، والماء' : 'BMI, calories & hydration',
+                    badge: isArabic ? '3 أدوات ذكية' : '3 Smart Tools',
+                    subtitle: isArabic ? 'كتلة الجسم، السعرات، والماء اليومي' : 'BMI, calories & hydration',
                     icon: Icons.calculate_rounded,
                     color: const Color(0xFF0072C3),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatorsScreen())),
+                    onTap: () => widget.onSelectTab(3),
                     isDark: isDark,
                   ),
                 ],
