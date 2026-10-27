@@ -392,7 +392,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                               Text(
                                 isArabic
                                     ? 'قاعدة بيانات دوائية وطبية شاملة، موثقة ومعتمدة بالكامل دون الحاجة لأي اتصال بالإنترنت.'
-                                    : 'Comprehensive medical reference with 230+ medications, 150+ lab tests, and 150+ diseases 100% offline.',
+                                    : 'Comprehensive medical reference with 26,000+ medications, 150+ lab tests, and 150+ diseases 100% offline.',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 12,
@@ -421,7 +421,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                       children: [
                         _buildHeroBadge(
                           icon: Icons.medication_rounded,
-                          label: isArabic ? '230+ دواء مصري بالبدائل' : '230+ Egyptian Meds & Subs',
+                          label: isArabic ? '26,000+ دواء مصري بالبدائل' : '26,000+ Egyptian Meds & Subs',
                         ),
                         _buildHeroBadge(
                           icon: Icons.biotech_rounded,
@@ -788,7 +788,7 @@ class _DashboardTabViewState extends ConsumerState<_DashboardTabView> {
                 children: [
                   _buildServiceCard(
                     title: isArabic ? 'دليل الأدوية' : 'Medications',
-                    badge: isArabic ? '230+ بالبدائل' : '230+ Meds',
+                    badge: isArabic ? '26k+ بالبدائل' : '26k+ Meds',
                     subtitle: isArabic ? 'الأسماء، المواد الفعالة، والبدائل المصرية' : 'Trade names, actives & Egyptian substitutes',
                     icon: Icons.medication_rounded,
                     color: AppColors.primaryBlue,

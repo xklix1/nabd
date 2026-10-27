@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nabd/core/database/database_helper.dart';
 import 'package:nabd/core/database/seed_medications.dart';
@@ -54,6 +56,18 @@ void main() {
       expect(DatabaseHelper.normalizeArabicText('إيبوبروفين'), 'ايبوبروفين');
       expect(DatabaseHelper.normalizeArabicText('مضادات حيوية'), 'مضادات حيويه');
       expect(DatabaseHelper.normalizeArabicText('فحص دَمٌ'), 'فحص دم');
+    });
+
+    test('Pre-compiled offline SQLite database asset exists and decompresses properly', () {
+      final gzFile = File('assets/database/nabd_catalog.db.gz');
+      final dbFile = File('assets/database/nabd_catalog.db');
+      expect(gzFile.existsSync() || dbFile.existsSync(), isTrue);
+
+      if (gzFile.existsSync()) {
+        expect(gzFile.lengthSync(), greaterThan(8000000));
+        final decompressed = gzip.decode(gzFile.readAsBytesSync());
+        expect(decompressed.length, greaterThan(50000000));
+      }
     });
   });
 }

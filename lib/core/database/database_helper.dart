@@ -1,128 +1,114 @@
+import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import '../security/secure_key_storage.dart';
 import '../constants/medical_references.dart';
-import 'seed_medications.dart';
-import 'seed_lab_tests.dart';
-import 'seed_diseases.dart';
 
 class DatabaseHelper {
-  static const String _databaseName = 'nabd_secure_v5.db';
-  static const int _databaseVersion = 5;
+  static const String _secureDatabaseName = 'nabd_secure_v5.db';
+  static const int _secureDatabaseVersion = 5;
+  static const String _catalogDatabaseName = 'nabd_catalog.db';
 
   final SecureKeyStorage _keyStorage;
-  Database? _db;
+  Database? _secureDb;
+  Database? _catalogDb;
 
   DatabaseHelper({SecureKeyStorage? keyStorage})
       : _keyStorage = keyStorage ?? SecureKeyStorage();
 
+  /// Secure encrypted database for HIPAA/OWASP protected PHI (vital signs, medication reminders)
   Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initEncryptedDatabase();
-    return _db!;
+    if (_secureDb != null && _secureDb!.isOpen) return _secureDb!;
+    _secureDb = await _initEncryptedDatabase();
+    return _secureDb!;
+  }
+
+  /// High-performance offline catalog database (26,500+ Egyptian medications, labs, diseases)
+  /// Kept unencrypted for instant ~2-4ms B-Tree search without AES decryption overhead.
+  Future<Database> get catalogDatabase async {
+    if (_catalogDb != null && _catalogDb!.isOpen) return _catalogDb!;
+    _catalogDb = await _initCatalogDatabase();
+    return _catalogDb!;
+  }
+
+  Future<Database> _initCatalogDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, _catalogDatabaseName);
+    final file = File(path);
+
+    bool needsCopy = true;
+    if (await file.exists()) {
+      final len = await file.length();
+      // The complete precompiled catalog is ~61MB. If file is present and >= 50MB, it's valid.
+      if (len >= 50000000) {
+        needsCopy = false;
+      }
+    }
+
+    if (needsCopy) {
+      try {
+        await Directory(dirname(path)).create(recursive: true);
+      } catch (_) {}
+
+      try {
+        // 1. Try to load compressed gzip catalog asset (9.6MB) and decompress in ~130ms
+        try {
+          final byteData = await rootBundle.load('assets/database/nabd_catalog.db.gz');
+          final compressedBytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+          final decompressedBytes = gzip.decode(compressedBytes);
+          await file.writeAsBytes(decompressedBytes, flush: true);
+        } catch (_) {
+          // 2. Fallback to uncompressed asset if present
+          final byteData = await rootBundle.load('assets/database/nabd_catalog.db');
+          final bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+          await file.writeAsBytes(bytes, flush: true);
+        }
+      } catch (e) {
+        // Fallback for unit tests or local execution
+        final gzFallback = File('assets/database/nabd_catalog.db.gz');
+        if (await gzFallback.exists()) {
+          final decompressed = gzip.decode(await gzFallback.readAsBytes());
+          await file.writeAsBytes(decompressed, flush: true);
+        } else {
+          final dbFallback = File('assets/database/nabd_catalog.db');
+          if (await dbFallback.exists()) {
+            await dbFallback.copy(path);
+          }
+        }
+      }
+    }
+
+    return await openDatabase(
+      path,
+      readOnly: false,
+    );
   }
 
   Future<Database> _initEncryptedDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _databaseName);
+    final path = join(dbPath, _secureDatabaseName);
 
     // Retrieve hardware-backed AES-256 key from Android Keystore / iOS Keychain
     final encryptionKey = await _keyStorage.getOrCreateDatabaseEncryptionKey();
 
     return await openDatabase(
       path,
-      version: _databaseVersion,
+      version: _secureDatabaseVersion,
       password: encryptionKey,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+      onCreate: _onCreateSecure,
+      onUpgrade: _onUpgradeSecure,
     );
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    await db.execute('DROP TABLE IF EXISTS medications;');
-    await db.execute('DROP TABLE IF EXISTS lab_tests;');
-    await db.execute('DROP TABLE IF EXISTS diseases;');
+  Future<void> _onUpgradeSecure(Database db, int oldVersion, int newVersion) async {
+    await db.execute('DROP TABLE IF EXISTS vital_logs;');
     await db.execute('DROP TABLE IF EXISTS medication_reminders;');
-    await _onCreate(db, newVersion);
+    await _onCreateSecure(db, newVersion);
   }
 
-  Future<void> _onCreate(Database db, int version) async {
-    // 1. Medications Table (Comprehensive Egyptian Catalog with Form & Manufacturer)
-    await db.execute('''
-      CREATE TABLE medications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name_ar TEXT NOT NULL,
-        name_en TEXT NOT NULL,
-        scientific_name TEXT NOT NULL,
-        active_ingredient_ar TEXT NOT NULL,
-        active_ingredient_en TEXT NOT NULL,
-        category_ar TEXT NOT NULL,
-        category_en TEXT NOT NULL,
-        dosage_form_ar TEXT NOT NULL DEFAULT '',
-        dosage_form_en TEXT NOT NULL DEFAULT '',
-        company TEXT NOT NULL DEFAULT '',
-        indications_ar TEXT NOT NULL,
-        indications_en TEXT NOT NULL,
-        side_effects_ar TEXT NOT NULL,
-        side_effects_en TEXT NOT NULL,
-        contraindications_ar TEXT NOT NULL,
-        contraindications_en TEXT NOT NULL,
-        standard_dosage_ar TEXT NOT NULL,
-        standard_dosage_en TEXT NOT NULL,
-        official_source TEXT NOT NULL,
-        official_url TEXT NOT NULL,
-        search_tokens TEXT NOT NULL
-      );
-    ''');
-    await db.execute('CREATE INDEX idx_med_names ON medications(name_ar, name_en, scientific_name);');
-    await db.execute('CREATE INDEX idx_med_search ON medications(search_tokens);');
-    await db.execute('CREATE INDEX idx_med_active ON medications(active_ingredient_en, active_ingredient_ar);');
-    await db.execute('CREATE INDEX idx_med_category ON medications(category_en, category_ar);');
-
-    // 2. Lab Tests Table (150+ Tests)
-    await db.execute('''
-      CREATE TABLE lab_tests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name_ar TEXT NOT NULL,
-        name_en TEXT NOT NULL,
-        code TEXT NOT NULL,
-        explanation_ar TEXT NOT NULL,
-        explanation_en TEXT NOT NULL,
-        normal_range_ar TEXT NOT NULL,
-        normal_range_en TEXT NOT NULL,
-        unit TEXT NOT NULL,
-        official_source TEXT NOT NULL,
-        official_url TEXT NOT NULL
-      );
-    ''');
-    await db.execute('CREATE INDEX idx_lab_names ON lab_tests(name_ar, name_en, code);');
-
-    // 3. Diseases & Medical Conditions Table (150+ Conditions)
-    await db.execute('''
-      CREATE TABLE diseases (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name_ar TEXT NOT NULL,
-        name_en TEXT NOT NULL,
-        category_ar TEXT NOT NULL DEFAULT 'عام',
-        category_en TEXT NOT NULL DEFAULT 'General',
-        overview_ar TEXT NOT NULL,
-        overview_en TEXT NOT NULL,
-        causes_ar TEXT NOT NULL,
-        causes_en TEXT NOT NULL,
-        symptoms_ar TEXT NOT NULL,
-        symptoms_en TEXT NOT NULL,
-        prevention_ar TEXT NOT NULL,
-        prevention_en TEXT NOT NULL,
-        initial_care_ar TEXT NOT NULL,
-        initial_care_en TEXT NOT NULL,
-        official_source TEXT NOT NULL,
-        official_url TEXT NOT NULL
-      );
-    ''');
-    await db.execute('CREATE INDEX idx_disease_names ON diseases(name_ar, name_en);');
-    await db.execute('CREATE INDEX idx_disease_cat ON diseases(category_ar, category_en);');
-
-    // 4. Personal Vital Signs Logs (Encrypted Local PHI)
+  Future<void> _onCreateSecure(Database db, int version) async {
+    // 1. Personal Vital Signs Logs (Encrypted Local PHI)
     await db.execute('''
       CREATE TABLE vital_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,7 +121,7 @@ class DatabaseHelper {
       );
     ''');
 
-    // 5. Medication Reminders Table (Supports One-Time and Recurring Reminders)
+    // 2. Medication Reminders Table (Supports One-Time and Recurring Reminders)
     await db.execute('''
       CREATE TABLE medication_reminders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -149,30 +135,6 @@ class DatabaseHelper {
         created_at TEXT NOT NULL
       );
     ''');
-
-    // Seed Verified Medical Reference Data (Exclusively WHO & Egyptian EDA/MOHP)
-    await _seedInitialMedicalData(db);
-  }
-
-  Future<void> _seedInitialMedicalData(Database db) async {
-    final batch = db.batch();
-
-    // 1. Insert Egyptian Medications (230+)
-    for (final med in getInitialMedications()) {
-      batch.insert('medications', med);
-    }
-
-    // 2. Insert Comprehensive Medical Lab Tests (150+)
-    for (final lab in getInitialLabTests()) {
-      batch.insert('lab_tests', lab);
-    }
-
-    // 3. Insert Comprehensive Medical Diseases Encyclopedia (150+)
-    for (final disease in getInitialDiseases()) {
-      batch.insert('diseases', disease);
-    }
-
-    await batch.commit(noResult: true);
   }
 
   /// Normalizes Arabic text for flexible matching (alif forms, taa marbuta, yaa, diacritics).
@@ -189,7 +151,7 @@ class DatabaseHelper {
   // Safe Parameterized Search Methods (OWASP SQLi Prevention)
   // Supports bilingual matching in Arabic and English with Arabic normalization
   Future<List<Map<String, dynamic>>> searchAll(String query) async {
-    final db = await database;
+    final db = await catalogDatabase;
     final cleanQuery = '%${query.trim()}%';
     final normQuery = '%${normalizeArabicText(query)}%';
 
@@ -197,10 +159,10 @@ class DatabaseHelper {
 
     // Medications (Bilingual Search with Active Ingredient & Brand matching)
     final meds = await db.rawQuery('''
-      SELECT 'medication' as type, id, name_ar, name_en, active_ingredient_ar, active_ingredient_en, category_ar, category_en, official_source, official_url
+      SELECT 'medication' as type, id, name_ar, name_en, active_ingredient_ar, active_ingredient_en, category_ar, category_en, dosage_form_ar, company, price_egp, official_source, official_url
       FROM medications
       WHERE search_tokens LIKE ? OR name_ar LIKE ? OR name_en LIKE ? OR scientific_name LIKE ? OR active_ingredient_ar LIKE ? OR active_ingredient_en LIKE ?
-      LIMIT 25;
+      LIMIT 30;
     ''', [normQuery, cleanQuery, cleanQuery, cleanQuery, cleanQuery, cleanQuery]);
     results.addAll(meds);
 
@@ -225,22 +187,27 @@ class DatabaseHelper {
     return results;
   }
 
-  Future<List<Map<String, dynamic>>> getMedications({String? filter}) async {
-    final db = await database;
+  Future<List<Map<String, dynamic>>> getMedications({String? filter, int limit = 60, int offset = 0}) async {
+    final db = await catalogDatabase;
     if (filter != null && filter.trim().isNotEmpty) {
       final raw = '%${filter.trim()}%';
       final norm = '%${normalizeArabicText(filter)}%';
       return await db.rawQuery('''
         SELECT * FROM medications
         WHERE search_tokens LIKE ? OR name_ar LIKE ? OR name_en LIKE ? OR scientific_name LIKE ? OR active_ingredient_ar LIKE ? OR active_ingredient_en LIKE ?
-        ORDER BY name_ar ASC;
-      ''', [norm, raw, raw, raw, raw, raw]);
+        ORDER BY name_ar ASC
+        LIMIT ? OFFSET ?;
+      ''', [norm, raw, raw, raw, raw, raw, limit, offset]);
     }
-    return await db.query('medications', orderBy: 'name_ar ASC');
+    return await db.rawQuery('''
+      SELECT * FROM medications
+      ORDER BY name_ar ASC
+      LIMIT ? OFFSET ?;
+    ''', [limit, offset]);
   }
 
   Future<Map<String, dynamic>?> getMedicationById(int id) async {
-    final db = await database;
+    final db = await catalogDatabase;
     final res = await db.query('medications', where: 'id = ?', whereArgs: [id], limit: 1);
     return res.isNotEmpty ? res.first : null;
   }
@@ -252,14 +219,15 @@ class DatabaseHelper {
     required String activeIngredientAr,
     String? categoryEn,
   }) async {
-    final db = await database;
+    final db = await catalogDatabase;
     // 1. Direct identical active ingredient substitutes (المثائل المتطابقة)
     final exact = await db.rawQuery('''
       SELECT * FROM medications
       WHERE id != ? AND (
         active_ingredient_en = ? OR active_ingredient_ar = ? OR scientific_name = ?
       )
-      ORDER BY name_ar ASC;
+      ORDER BY name_ar ASC
+      LIMIT 25;
     ''', [medicationId, activeIngredientEn, activeIngredientAr, activeIngredientEn]);
 
     if (exact.isNotEmpty) return exact;
@@ -270,7 +238,7 @@ class DatabaseHelper {
         SELECT * FROM medications
         WHERE id != ? AND category_en = ?
         ORDER BY name_ar ASC
-        LIMIT 10;
+        LIMIT 15;
       ''', [medicationId, categoryEn]);
     }
 
@@ -278,7 +246,7 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>> getLabTests({String? filter}) async {
-    final db = await database;
+    final db = await catalogDatabase;
     if (filter != null && filter.trim().isNotEmpty) {
       final q = '%${filter.trim()}%';
       return await db.rawQuery('''
@@ -291,7 +259,7 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>> getDiseases({String? filter, String? category}) async {
-    final db = await database;
+    final db = await catalogDatabase;
     if (category != null && category.isNotEmpty && category != 'all') {
       if (filter != null && filter.trim().isNotEmpty) {
         final q = '%${filter.trim()}%';
@@ -375,4 +343,16 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('medication_reminders', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> close() async {
+    if (_secureDb != null && _secureDb!.isOpen) {
+      await _secureDb!.close();
+      _secureDb = null;
+    }
+    if (_catalogDb != null && _catalogDb!.isOpen) {
+      await _catalogDb!.close();
+      _catalogDb = null;
+    }
+  }
 }
+

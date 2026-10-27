@@ -416,6 +416,8 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
         final contra = isArabic ? item['contraindications_ar'] : item['contraindications_en'];
         final source = item['official_source'] ?? '';
         final url = item['official_url']?.toString();
+        final priceRaw = item['price_egp'];
+        final double? price = priceRaw != null ? (priceRaw as num).toDouble() : null;
 
         return Container(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.9),
@@ -472,6 +474,13 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
                             runSpacing: 4,
                             children: [
                               _chip(category, AppColors.primaryBlue),
+                              if (price != null && price > 0)
+                                _chip(
+                                  isArabic
+                                      ? 'السعر الرسمي: ${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)} ج.م'
+                                      : 'Price: ${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)} EGP',
+                                  const Color(0xFF10B981),
+                                ),
                               if (form.isNotEmpty) _chip(form, AppColors.secondaryTeal),
                               if (company.isNotEmpty) _chip(company, Colors.indigo),
                             ],
@@ -662,6 +671,8 @@ class _MedicationClinicalCard extends StatelessWidget {
     final form = isArabic ? (item['dosage_form_ar'] ?? '') : (item['dosage_form_en'] ?? '');
     final company = item['company'] ?? '';
     final category = isArabic ? item['category_ar'] : item['category_en'];
+    final priceRaw = item['price_egp'];
+    final double? price = priceRaw != null ? (priceRaw as num).toDouble() : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -765,11 +776,20 @@ class _MedicationClinicalCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Pills info: Form, Company, Category
+            // Pills info: Price, Form, Company, Category
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
+                if (price != null && price > 0)
+                  _badge(
+                    icon: Icons.payments_outlined,
+                    label: isArabic
+                        ? '${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)} ج.م'
+                        : '${price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2)} EGP',
+                    isDark: isDark,
+                    color: const Color(0xFF10B981),
+                  ),
                 if (form.isNotEmpty)
                   _badge(icon: Icons.grain_rounded, label: form, isDark: isDark),
                 if (company.isNotEmpty)
@@ -835,23 +855,28 @@ class _MedicationClinicalCard extends StatelessWidget {
     );
   }
 
-  Widget _badge({required IconData icon, required String label, required bool isDark}) {
+  Widget _badge({required IconData icon, required String label, required bool isDark, Color? color}) {
+    final textColor = color ?? (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary);
+    final bgColor = color != null
+        ? color.withOpacity(0.12)
+        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        color: bgColor,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+          Icon(icon, size: 12, color: textColor),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 11,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
+              color: textColor,
             ),
           ),
         ],
