@@ -382,13 +382,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             const SizedBox(height: 16),
             Center(
-              child: Text(
-                'Nabd Health App v1.0.0 (Offline-First)\nAttributions: WHO & Egyptian MOHP/EDA',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                ),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/icons/nabd_logo.png',
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Nabd Health App v1.0.0 (Offline-First)\nAttributions: WHO & Egyptian MOHP/EDA',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),

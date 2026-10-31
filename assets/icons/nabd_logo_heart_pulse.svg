@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Brand Medical Gradients -->
+    <linearGradient id="nabdGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A56DB"/>
+      <stop offset="50%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0.05"/>
+    </linearGradient>
+    <!-- Soft Ambient Glow -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1A56DB" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background Soft Aura -->
+  <circle cx="256" cy="220" r="160" fill="url(#glowGrad)"/>
+
+  <!-- Main Symbol Group with Shadow -->
+  <g filter="url(#subtleShadow)">
+    <!-- Stylized Heart Perimeter with Top Archs -->
+    <path d="M 256,155
+             C 210,95 130,90 88,145
+             C 45,200 55,275 110,335
+             L 256,430
+             L 402,335
+             C 457,275 467,200 424,145
+             C 382,90 302,95 256,155 Z"
+          fill="none"
+          stroke="url(#nabdGrad)"
+          stroke-width="26"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- Central Dynamic ECG Pulse Rhythm -->
+    <path d="M 120,256
+             L 180,256
+             L 198,225
+             L 222,295
+             L 248,150
+             L 278,350
+             L 302,230
+             L 322,270
+             L 340,256
+             L 392,256"
+          fill="none"
+          stroke="url(#nabdGrad)"
+          stroke-width="24"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- Vitality Sparkle Dot / Pulse Peak Accent -->
+    <circle cx="248" cy="150" r="8" fill="#06B6D4" filter="url(#softGlow)"/>
+  </g>
+</svg>
+

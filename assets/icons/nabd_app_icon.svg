@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient (Deep Clinical Slate & Navy) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="60%" stop-color="#111E38"/>
+      <stop offset="100%" stop-color="#0A101D"/>
+    </linearGradient>
+
+    <!-- Border Glow Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#0D9488" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#1E293B" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <!-- Primary Pulse Gradient -->
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="40%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+
+    <!-- Intense Neon Glow Filter -->
+    <filter id="neonGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="10" result="blur1" />
+      <feGaussianBlur stdDeviation="22" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <radialGradient id="centerLight" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#0D9488" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#1A56DB" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Squircle Base for App Icon -->
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="url(#bgGrad)"/>
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="none" stroke="url(#borderGrad)" stroke-width="3.5"/>
+
+  <!-- Subtle Radial Glow Behind Symbol -->
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="url(#centerLight)"/>
+
+  <!-- Foreground Emblem: Interwoven Heart + ECG Pulse Rhythm -->
+  <g filter="url(#neonGlow)">
+    <!-- Stylized Modern Heart -->
+    <path d="M 256,170
+             C 214,115 142,110 104,160
+             C 65,210 74,278 124,332
+             L 256,418
+             L 388,332
+             C 438,278 447,210 408,160
+             C 370,110 298,115 256,170 Z"
+          fill="none"
+          stroke="url(#pulseGrad)"
+          stroke-width="22"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-opacity="0.95"/>
+
+    <!-- Dynamic Cardiogram Rhythm Wave Cutting Across with Power -->
+    <path d="M 90,260
+             L 155,260
+             L 172,236
+             L 194,295
+             L 220,165
+             L 256,365
+             L 284,215
+             L 306,285
+             L 326,248
+             L 345,260
+             L 422,260"
+          fill="none"
+          stroke="#FFFFFF"
+          stroke-width="18"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <!-- Pulse Peak Vital Point -->
+    <circle cx="220" cy="165" r="7" fill="#38BDF8"/>
+  </g>
+</svg>
+
